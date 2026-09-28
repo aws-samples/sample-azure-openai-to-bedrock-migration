@@ -1,0 +1,33 @@
+[package]
+name = "az2br"
+version = "0.1.0"
+edition = "2021"
+description = "Azure OpenAI to Amazon Bedrock migration scanner and toolkit"
+repository = "https://github.com/aws-samples/sample-azure-openai-to-bedrock-migration"
+license = "MIT-0"
+readme = "README.md"
+
+[[bin]]
+name = "az2br"
+path = "src/main.rs"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4", features = ["derive"] }
+
+# File system walking
+walkdir = "2"
+
+# Regex for pattern matching
+regex = "1"
+
+# Output serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Terminal formatting
+colored = "2"
+indicatif = "0.17"
+
+# Error handling
+anyhow = "1"

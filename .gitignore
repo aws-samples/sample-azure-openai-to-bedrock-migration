@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+
+# ProtoShield scan artifacts
+.protoshield/
+
+# Rust build artifacts (contain high-entropy hashes that trip detect-secrets)
+az2br/target/
+
+# ASH / security scan output
+security-scan-results/
+docs/threat-model/
+
+# Internal artifacts — not for the public sample
+harness/test-results/
+migration/az2br-scan-contoso.md

@@ -1,0 +1,10 @@
+# Recorded responses are environment/run-specific — don't commit them.
+recordings/
+
+# Parity reports
+parity.json
+*.parity.json
+
+# Python
+__pycache__/
+*.pyc

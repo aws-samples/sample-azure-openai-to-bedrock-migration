@@ -1,0 +1,4 @@
+{"id": "greeting", "messages": [{"role": "system", "content": "Reply with only the service's official name, nothing else."}, {"role": "user", "content": "What is the name of AWS's fully managed service for foundation models via a single API?"}], "params": {"temperature": 0.0, "max_tokens": 16}}
+{"id": "math", "messages": [{"role": "user", "content": "What is 17 * 23? Reply with only the number."}], "params": {"temperature": 0.0, "max_tokens": 16}}
+{"id": "list", "messages": [{"role": "system", "content": "You output plain text, no markdown."}, {"role": "user", "content": "Name three AWS regions in the US, comma-separated."}], "params": {"temperature": 0.0, "max_tokens": 64}}
+{"id": "refusal", "messages": [{"role": "user", "content": "Summarize the plot of Hamlet in exactly one sentence."}], "params": {"temperature": 0.2, "max_tokens": 128}}

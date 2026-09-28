@@ -1,0 +1,8 @@
+# Rust build artifacts
+/target/
+
+# Backtrace / debug files
+*.pdb
+
+# Note: Cargo.lock IS committed — az2br is a binary crate, so a pinned
+# lockfile gives reproducible builds for contributors and CI.

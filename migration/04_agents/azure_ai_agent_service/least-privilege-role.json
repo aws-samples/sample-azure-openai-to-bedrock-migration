@@ -1,0 +1,64 @@
+{
+  "_comment": "T004 mitigation: least-privilege execution role example for AgentCore Runtime. Replace <REGION>, <ACCOUNT_ID>, <RUNTIME_ID>, and the model ARN with your values. Any code running in the AgentCore microVM can read these credentials via the instance metadata endpoint (MMDS), so scope this role to only what the agent needs (per https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html). Do NOT ship the broad CLI-generated dev policy to production.",
+  "executionRolePolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "InvokeOnlyTheModelsTheAgentUses",
+        "Effect": "Allow",
+        "Action": [
+          "bedrock:InvokeModel",
+          "bedrock:Converse"
+        ],
+        "Resource": [
+          "arn:aws:bedrock:<REGION>::foundation-model/openai.gpt-5.6-terra",
+          "arn:aws:bedrock:<REGION>:<ACCOUNT_ID>:inference-profile/us.openai.gpt-5.6-terra"
+        ]
+      },
+      {
+        "Sid": "ApplyGuardrailForPromptInjectionFiltering",
+        "Effect": "Allow",
+        "Action": "bedrock:ApplyGuardrail",
+        "Resource": "arn:aws:bedrock:<REGION>:<ACCOUNT_ID>:guardrail/<GUARDRAIL_ID>"
+      },
+      {
+        "Sid": "AgentCoreRuntimeScopedToThisRuntimeOnly",
+        "Effect": "Allow",
+        "Action": [
+          "bedrock-agentcore:GetWorkloadAccessToken",
+          "bedrock-agentcore:GetResourceApiKey"
+        ],
+        "Resource": "arn:aws:bedrock-agentcore:<REGION>:<ACCOUNT_ID>:runtime/<RUNTIME_ID>"
+      },
+      {
+        "Sid": "AllowWritingOwnLogsOnly",
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/bedrock-agentcore/runtimes/<RUNTIME_ID>:*"
+      }
+    ]
+  },
+  "trustPolicyWithConfusedDeputyPrevention": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "bedrock-agentcore.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole",
+        "Condition": {
+          "StringEquals": {
+            "aws:SourceAccount": "<ACCOUNT_ID>"
+          },
+          "ArnLike": {
+            "aws:SourceArn": "arn:aws:bedrock-agentcore:<REGION>:<ACCOUNT_ID>:*"
+          }
+        }
+      }
+    ]
+  }
+}

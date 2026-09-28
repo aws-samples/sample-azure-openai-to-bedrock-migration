@@ -1,0 +1,96 @@
+name: CI
+
+# Two-tier CI:
+#   * offline  — always runs (no cloud creds): builds az2br, runs the Rust CLI
+#     against the migration examples, runs the harness offline unit tests, and
+#     py_compiles every example.
+#   * smoke    — runs the LIVE Bedrock smoke test, but ONLY when AWS credentials
+#     are available via OIDC. It is gated on a repo variable/secret so it safely
+#     no-ops on forks and on PRs that can't assume the role.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    name: Offline (build + tests, no cloud)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de  # stable
+        with:
+          toolchain: stable
+
+      - name: Build az2br (release)
+        working-directory: az2br
+        run: cargo build --release
+
+      - name: az2br scans each before/ example (expects HIGH findings -> exit 1)
+        run: |
+          set -e
+          BIN=az2br/target/release/az2br
+          for d in migration/*/before migration/*/*/before; do
+            [ -d "$d" ] || continue
+            echo "== scanning $d =="
+            if "$BIN" scan "$d" --high-only >/dev/null; then
+              echo "ERROR: expected HIGH findings in $d but scan passed"; exit 1
+            else
+              echo "  ok: $d flagged as expected"
+            fi
+          done
+
+      - name: py_compile all Python
+        run: python -m py_compile $(git ls-files '*.py')
+
+      - name: Harness offline unit tests
+        run: python harness/test_diff.py
+
+  smoke:
+    name: Live Bedrock smoke test (gated on AWS creds)
+    runs-on: ubuntu-latest
+    needs: offline
+    # Only run when an OIDC role is configured. Set repo variable AWS_SMOKE_ROLE_ARN
+    # (Settings -> Secrets and variables -> Actions -> Variables) to an IAM role that
+    # trusts this repo's GitHub OIDC provider and has Bedrock invoke permissions.
+    if: ${{ vars.AWS_SMOKE_ROLE_ARN != '' }}
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
+        with:
+          role-to-assume: ${{ vars.AWS_SMOKE_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_SMOKE_REGION || 'us-east-1' }}
+
+      - name: Install smoke-test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r harness/requirements.txt langchain-aws semantic-kernel
+
+      - name: Run live smoke test
+        env:
+          AWS_REGION: ${{ vars.AWS_SMOKE_REGION || 'us-east-1' }}
+          BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'openai.gpt-oss-120b-1:0' }}
+        run: python harness/smoke_test_after.py
