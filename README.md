@@ -17,6 +17,7 @@ Azure OpenAI applications are tightly coupled to Azure-managed endpoints, authen
 
 - `az2br` — a Rust CLI that scans your codebase for Azure OpenAI patterns and generates a prioritized migration report
 - Step-by-step migration guides covering chat completions, embeddings, function calling, agents, and vector search
+- Three chat completion paths — OpenAI-compatible endpoint, Bedrock Converse, or the Responses API — so you keep the call shape that fits where you're headed
 - A regression test harness to validate parity between Azure and Bedrock before cutover
 - Real before/after code — not pseudocode
 
