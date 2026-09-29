@@ -128,7 +128,7 @@ pub static PATTERNS: &[(&str, &str, &str, Severity, &str)] = &[
         "web_search server tool",
         r#"["']type["']\s*:\s*["']web_search["']"#,
         Severity::Medium,
-        "Bedrock now has a built-in Web Search tool: add {\"type\":\"web_search\"} on the OpenAI Responses API (GPT-5.x, bedrock-runtime endpoint) — near drop-in. Not on Converse/InvokeModel; else use a client-side search tool. See migration/03_tool_use/server-tools.md.",
+        "Bedrock now has a built-in Web Search tool: add {\"type\":\"web_search\"} on the OpenAI Responses API (GPT-5.x, bedrock-mantle endpoint) — near drop-in. Server-side tools are not available on bedrock-runtime, Converse, or InvokeModel; else use a client-side search tool. See migration/03_tool_use/server-tools.md.",
     ),
     (
         "tools",
