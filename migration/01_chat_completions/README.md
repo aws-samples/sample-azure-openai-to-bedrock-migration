@@ -8,22 +8,33 @@ invest now versus later.
 - **Before:** [`before/azure_chat.py`](before/azure_chat.py)
 - **After, Path A:** [`after/bedrock_openai_endpoint.py`](after/bedrock_openai_endpoint.py)
 - **After, Path B:** [`after/bedrock_converse.py`](after/bedrock_converse.py)
+- **After, Path C:** [`after/bedrock_responses_api.py`](after/bedrock_responses_api.py)
 
 ---
 
-## Two paths
+## Three paths
 
-| | **Path A — OpenAI-compatible endpoint** | **Path B — Converse API** |
+There's no single "right" path — it depends on **what API you're on today** and
+**whether you plan to stay on OpenAI models**. Any of the three is valid.
+
+| Path | Use when | API surface |
 |---|---|---|
-| SDK | Keep the `openai` library | `boto3` (`bedrock-runtime`) |
-| Diff size | Smallest — swap client init, keep `chat.completions.create(...)` | Larger — different call shape |
-| Auth | Bedrock API key (bearer token) | Standard AWS credentials (SigV4) |
-| Portability | OpenAI-shaped; tied to that call surface | One shape across **all** Bedrock models |
-| Best when | Fast cutover, minimal risk, existing OpenAI code | You want to swap/A-B models later without rewrites |
+| **A — OpenAI-compatible endpoint** | On Chat Completions today, want smallest diff | Chat Completions (OpenAI SDK) |
+| **B — Converse** | Want a model-agnostic interface, may evaluate non-OpenAI models later | Bedrock Converse |
+| **C — Responses API (mantle)** | On Responses/Assistants today, want to keep that surface, or need server-side tools (Web Search, code interpreter) | Responses (OpenAI SDK) |
 
-**Recommendation:** start with **Path A** to get onto Bedrock with the smallest
-diff, then adopt **Path B** where you want provider-independence (tool use,
-multimodal, and model swaps all share one API on Converse).
+Two questions decide it:
+
+- **What API are you on today?** On Chat Completions → Path A is the smallest
+  move. On the Responses API or Azure Assistants → Path C keeps your call shape.
+- **Do you plan to stay on OpenAI models?** If you may evaluate non-OpenAI
+  models (Claude, Nova, Llama) later, Path B gives you one API across the whole
+  Bedrock catalog so a model swap is config, not a rewrite.
+
+**Recommendation:** match the path to where you are — start with **Path A** for
+the smallest Chat Completions cutover, choose **Path C** if you're already on
+the Responses API (or need mantle-only server-side tools), and adopt **Path B**
+where you want provider-independence across the full model catalog.
 
 > Naming note: Path A uses the Amazon Bedrock **OpenAI-compatible endpoint**
 > (also called the **Chat Completions API** on Bedrock). It is served on the
@@ -107,6 +118,67 @@ print("".join(b["text"] for b in blocks if "text" in b))
 ```bash
 pip install boto3
 ```
+
+---
+
+## Path C — the Responses API on `bedrock-mantle`
+
+If you're already calling `client.responses.create(...)` (or you're on Azure
+OpenAI Assistants, which maps conceptually to the Responses API), you can keep
+that surface. Point the OpenAI SDK at the Bedrock **mantle** endpoint. This is
+also the path to reach **server-side tools** — Web Search, code interpreter —
+which are mantle-only (the Responses API on `bedrock-runtime` does not expose
+them).
+
+```python
+from aws_bedrock_token_generator import provide_token
+from openai import OpenAI
+
+region = "us-east-1"
+client = OpenAI(
+    base_url=f"https://bedrock-mantle.{region}.api.aws/openai/v1",
+    api_key=provide_token(region=region),
+)
+
+response = client.responses.create(
+    model="openai.gpt-5.6-terra",           # bare model id on mantle
+    input="What is Amazon Bedrock?",
+)
+print(response.output_text)
+```
+
+Add the built-in Web Search tool with one tool object — near drop-in from Azure:
+
+```python
+response = client.responses.create(
+    model="openai.gpt-5.6-terra",
+    input="What's the latest AWS Lambda cold start guidance?",
+    tools=[{
+        "type": "web_search",
+        "search_context_size": "low",
+        "external_web_access": False,  # keep retrieval inside the AWS boundary
+    }],
+)
+```
+
+Full runnable example: [`after/bedrock_responses_api.py`](after/bedrock_responses_api.py).
+
+```bash
+pip install openai aws-bedrock-token-generator
+```
+
+> Mantle authorizes inference with the `bedrock-mantle:CreateInference` IAM
+> action **plus** `bedrock-mantle:CallWithBearerToken` when you authenticate
+> with a Bedrock API key (the OpenAI SDK path here — granting only
+> `CreateInference` fails 403). Web Search adds `bedrock-websearch:InvokeSearch`
+> + `bedrock-websearch:InvokeFetch`. Leaving `external_web_access` at its
+> default of `True` without `bedrock-websearch:ExternalWebAccess` makes live
+> Fetch fail silently (the call still returns 200 using Search-only results —
+> the failed Fetch shows up only as a `web_search_call` with `status: "failed"`
+> in the response body) — set it to `False` to stay inside the AWS boundary.
+> Also note: mantle takes the **bare** model id (`openai.gpt-5.6-terra`); the
+> `us.` inference-profile id is a `bedrock-runtime` concept and 404s on mantle.
+> See [`../03_tool_use/server-tools.md`](../03_tool_use/server-tools.md).
 
 ---
 

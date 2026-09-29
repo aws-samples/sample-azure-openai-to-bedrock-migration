@@ -39,7 +39,7 @@ Full runnable example: [../migration/03_tool_use/](../migration/03_tool_use/).
 
 | Azure server tool | Bedrock equivalent | Effort |
 |---|---|---|
-| `{"type": "web_search"}` | **Web Search** — built-in server tool: `{"type": "web_search"}` on the **OpenAI Responses API** (GPT-5.x) | Low — near drop-in |
+| `{"type": "web_search"}` | **Web Search** — built-in server tool: `{"type": "web_search"}` on the **OpenAI Responses API** (GPT-5.x), on the **bedrock-mantle** endpoint | Low — near drop-in |
 | `{"type": "code_interpreter"}` | AgentCore Runtime **Code Interpreter** sandbox, or a Lambda-backed tool | Medium |
 | `{"type": "file_search"}` | **Bedrock Knowledge Bases** (managed RAG) or Amazon OpenSearch | Medium |
 
@@ -58,8 +58,11 @@ response = client.responses.create(
 
 Requirements and constraints (verify current details in the Bedrock User Guide):
 
-- **OpenAI Responses API only**, on the `bedrock-runtime` endpoint. **Not**
-  available through Converse or InvokeModel.
+- **OpenAI Responses API only**, on the `bedrock-mantle` endpoint. **Not**
+  available through Converse or InvokeModel, and **not** through the Responses
+  API on `bedrock-runtime` (server-side tools are mantle-only). Mantle
+  authorizes inference with `bedrock-mantle:CreateInference` rather than
+  `bedrock:InvokeModel`.
 - Supported on **OpenAI GPT-5.4, GPT-5.5, GPT-5.6** (Sol / Terra / Luna).
 - IAM permissions: `bedrock-websearch:InvokeSearch` (discover sources),
   `bedrock-websearch:InvokeFetch` (retrieve cached page content),
@@ -96,8 +99,9 @@ Azure's `file_search` is managed RAG over uploaded files. On Bedrock:
 
 - **Function calling** → `toolConfig` (Converse) or unchanged (Path A). Always
   portable.
-- **`web_search`** → Bedrock Web Search on the Responses API with a GPT-5.x
-  model, if your Region supports it; else a client-side search tool.
+- **`web_search`** → Bedrock Web Search on the Responses API (bedrock-mantle
+  endpoint) with a GPT-5.x model, if your Region supports it; else a
+  client-side search tool.
 - **`code_interpreter`** → AgentCore Code Interpreter or a Lambda-backed tool.
 - **`file_search`** → Bedrock Knowledge Bases (managed) or OpenSearch (DIY).
 

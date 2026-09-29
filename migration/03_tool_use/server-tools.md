@@ -18,7 +18,7 @@ from openai import OpenAI
 
 region = "us-east-1"
 client = OpenAI(
-    base_url=f"https://bedrock-runtime.{region}.amazonaws.com/openai/v1",
+    base_url=f"https://bedrock-mantle.{region}.api.aws/openai/v1",
     api_key=provide_token(region=region),
 )
 
@@ -32,8 +32,15 @@ print(response.output_text)
 
 **Requirements / limits** (confirm current details in the Bedrock User Guide):
 
-- **OpenAI Responses API only**, on the `bedrock-runtime` endpoint. Not
-  available through Converse or InvokeModel.
+- **OpenAI Responses API only**, on the `bedrock-mantle` endpoint. Server-side
+  tools like Web Search are **not** available when the Responses API is called
+  on `bedrock-runtime`, and not available through Converse or InvokeModel.
+- Mantle authorizes inference with the `bedrock-mantle:CreateInference` IAM
+  action, plus `bedrock-mantle:CallWithBearerToken` when you authenticate with a
+  Bedrock API key (the OpenAI SDK path — granting only `CreateInference` fails
+  403), instead of `bedrock:InvokeModel` on `bedrock-runtime`. Mantle takes the
+  bare model id (`openai.gpt-5.6-terra`); the `us.` inference-profile id is a
+  `bedrock-runtime` concept and 404s on mantle.
 - Supported on **OpenAI GPT-5.4, GPT-5.5, GPT-5.6** (Sol / Terra / Luna).
 - IAM: `bedrock-websearch:InvokeSearch` (discover sources),
   `bedrock-websearch:InvokeFetch` (retrieve cached page content),
@@ -80,6 +87,6 @@ Azure `file_search` is managed RAG over uploaded files. On Bedrock:
 
 | Azure server tool | Bedrock target | Effort |
 |---|---|---|
-| `web_search` | Web Search built-in tool (Responses API, GPT-5.x) | Low — near drop-in |
+| `web_search` | Web Search built-in tool (Responses API on bedrock-mantle, GPT-5.x) | Low — near drop-in |
 | `code_interpreter` | AgentCore Code Interpreter / Lambda tool | Medium |
 | `file_search` | Knowledge Bases / OpenSearch | Medium |
