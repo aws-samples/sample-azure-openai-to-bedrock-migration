@@ -174,5 +174,16 @@ class TestDiff(unittest.TestCase):
         self.assertTrue(result.passed, result.reasons)
 
 
+    def test_normalize_text_unicode_whitespace_and_empty_values(self):
+        # Unicode non-breaking space must collapse like other whitespace, while
+        # accented characters are preserved after case normalization.
+        self.assertEqual(
+            diffmod.normalize_text("  Café\n\tAU\u00a0LAIT  "),
+            "café au lait",
+        )
+        self.assertEqual(diffmod.normalize_text(""), "")
+        self.assertEqual(diffmod.normalize_text(None), "")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
