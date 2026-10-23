@@ -14,11 +14,14 @@ models. So switching embedding models is a **re-embed + re-index**, not a swap.
 | Azure `text-embedding-3-large` | 3072 | 8,191 tokens |
 | Amazon Titan Text Embeddings **V2** (`amazon.titan-embed-text-v2:0`) | **1024** (default), 512, 256 | 8,192 tokens / 50,000 chars |
 | Amazon Titan Text Embeddings **G1** (`amazon.titan-embed-text-v1`) | 1536 | 8,192 tokens |
+| Cohere Embed v4 (`cohere.embed-v4`) | configurable 256–1536 | ~128K tokens |
+| Amazon Nova Multimodal Embeddings (`amazon.nova-2-multimodal-embeddings-v1:0`) | 3072, 1024, 384, 256 | 8K tokens |
 
-Key point: **none of the common Bedrock choices match ada-002's 1536 as a
-drop-in you'd want.** Titan G1 is 1536 but is the older model; Titan V2 (1024)
-is the current recommendation. Either way you re-embed, so migrate to the model
-you actually want, not the one with the matching number.
+Key point: **a matching dimension is never a drop-in.** Titan G1 and Cohere
+Embed v4 can output 1536 (ada-002 / 3-small), and Nova Multimodal Embeddings
+can output 3072 (3-large). That lets you keep the index *size*, but the
+vectors come from a different model, so you still re-embed everything. Pick
+the model you actually want, not the one with the matching number.
 
 ## Migration playbook
 
