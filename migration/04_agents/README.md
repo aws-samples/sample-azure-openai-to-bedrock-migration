@@ -32,8 +32,8 @@ harness where it pays off.
 | Starting point | Guide | Framework-native target |
 |---|---|---|
 | LangChain (`AzureChatOpenAI`) | [`langchain/`](langchain/) | `ChatBedrockConverse` (`langchain-aws`) |
-| AutoGen (Azure client) | [`autogen/`](autogen/) | Bedrock via AutoGen's OpenAI-compatible client / `langchain-aws` |
-| Semantic Kernel (`AzureChatCompletion`) | [`semantic_kernel/`](semantic_kernel/) | Bedrock connector for SK |
+| AutoGen (Azure client) | [`autogen/`](autogen/) | AG2 Classic (`pip install "autogen[openai]"`) via Bedrock's OpenAI-compatible endpoint. Microsoft's `autogen-agentchat` is archived and not covered |
+| Semantic Kernel (`AzureChatCompletion`) | [`semantic_kernel/`](semantic_kernel/) | OpenAI-compatible endpoint for OpenAI models; native Bedrock connector for non-OpenAI models. SK is now Microsoft Agent Framework |
 | Azure AI Agent Service | *(see below)* | AgentCore harness, or AgentCore + Strands |
 
 ## Azure AI Agent Service → AgentCore + Strands

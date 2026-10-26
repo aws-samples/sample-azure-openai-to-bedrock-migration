@@ -24,6 +24,13 @@ pip install langchain-aws
 
 Notes:
 
+- **Tested with `langchain-aws` 1.9.1** against `openai.gpt-oss-120b-1:0` and
+  `us.openai.gpt-6-sol` (the sample drops the hardcoded `temperature` for
+  frontier GPT models). Recent releases added `reasoning_effort` support for
+  GPT-6 Sol/Luna on `ChatBedrockConverse` (1.8.0).
+- `langchain-aws[openai]` also provides `ChatOpenAIMantle`, which targets the
+  `bedrock-mantle` endpoint and defaults to the Responses API for GPT-5.x/6. It
+  is an option when you need mantle-only features; it was not tested here.
 - **`ChatBedrockConverse`** uses the Converse API, so it works across every
   Bedrock model — swapping models is just changing `model=`.
   (`ChatBedrock` also exists and uses InvokeModel; prefer `ChatBedrockConverse`
