@@ -14,7 +14,7 @@ map, and the dimension rule that catches people.
 | Indexer / data source | data source (S3, SaaS connectors) | data source (S3, custom) | your ingestion pipeline |
 | Skillset (chunk/embed) | managed parsing, chunking, embedding | managed chunking; you pick the embedding model | you build it |
 | Vector field | managed | managed | `knn_vector` field |
-| Query (`search`) | `retrieve` / `retrieve_and_generate` / agentic retrieval | `retrieve` / `retrieve_and_generate` | `knn` query |
+| Query (`search`) | `retrieve` / agentic retrieval (`retrieve_and_generate` not supported) | `retrieve` / `retrieve_and_generate` | `knn` query |
 | API key | AWS IAM | AWS IAM | AWS IAM |
 
 ---
@@ -39,11 +39,35 @@ kb = agent.create_knowledge_base(
 )["knowledgeBase"]["knowledgeBaseId"]
 ```
 
-Then create a data source and start ingestion (`create_data_source`,
-`start_ingestion_job`). S3 and the SaaS connectors use the
-`MANAGED_KNOWLEDGE_BASE_CONNECTOR` data source type; see the
-[Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-managed-create.html)
-for the exact connector configuration.
+Then create an S3 data source and start ingestion. Managed KBs use the
+`MANAGED_KNOWLEDGE_BASE_CONNECTOR` data source type:
+
+```python
+ds = agent.create_data_source(
+    knowledgeBaseId=kb, name="s3-docs", dataDeletionPolicy="DELETE",
+    dataSourceConfiguration={
+        "type": "MANAGED_KNOWLEDGE_BASE_CONNECTOR",
+        "managedKnowledgeBaseConnectorConfiguration": {"connectorParameters": {
+            "type": "S3", "version": "1",
+            "connectionConfiguration": {"bucketName": "my-docs-bucket",
+                                        "bucketOwnerAccountId": "123456789012"},
+            "deletionProtectionConfiguration": {"enableDeletionProtection": False},
+        }},
+    },
+    vectorIngestionConfiguration={"parsingConfiguration": {"parsingStrategy": "SMART_PARSING"}},
+)["dataSource"]["dataSourceId"]
+# Wait until get_data_source() reports AVAILABLE before start_ingestion_job(),
+# otherwise it fails with "data source with status CREATING".
+```
+
+**Least-privilege service role.** With the default managed embedding model, the
+KB role needs only S3 read on the data bucket: `s3:ListBucket` on the bucket and
+`s3:GetObject` on its objects, both conditioned on
+`aws:ResourceAccount`. No `bedrock:InvokeModel` is required (add it only for a
+custom embedding model). Trust `bedrock.amazonaws.com` with `aws:SourceAccount`
+and an `aws:SourceArn` of `arn:aws:bedrock:{region}:{account}:knowledge-base/*`,
+then narrow it to the new KB's ID. See the
+[Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-managed-permissions.html).
 
 To use your own embedding model instead, set `embeddingModelType` to `CUSTOM` and
 pass `embeddingModelArn` plus `embeddingModelConfiguration` with `dimensions: 1024`

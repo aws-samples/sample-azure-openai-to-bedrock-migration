@@ -14,10 +14,13 @@ Two Knowledge Base types exist, and the `retrievalConfiguration` key differs:
   - Customer-managed (you pick the vector store; type VECTOR) -> `vectorSearchConfiguration`
 Set BEDROCK_KB_TYPE=managed (default) or custom to match your Knowledge Base.
 
-Two calls are available:
+Calls available:
   - retrieve             -> just the retrieved chunks (shown here; drop-in for
-                            the Azure search() function).
+                            the Azure search() function). Works on both KB types.
   - retrieve_and_generate -> retrieval + a grounded answer in one call.
+                            Customer-managed KBs only (rejected on Managed KBs).
+  - agentic_retrieve_stream -> multi-hop retrieval, optionally with a generated
+                            answer. Managed KBs only.
 
 Set up the Knowledge Base once (S3 data source; plus embedding model and vector
 store for a customer-managed KB); see ../ai-search-to-opensearch.md. Then query

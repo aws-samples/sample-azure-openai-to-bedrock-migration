@@ -19,7 +19,7 @@ AWS recommends the **Managed** type for new work.
 | You manage | S3/SaaS data sources + config | S3 data + vector store + embedding model | chunking, embedding, index, queries |
 | Embedding | service-managed by default; optional custom (1024-dim float32) | you pick `embeddingModelArn` | you embed and write vectors |
 | Vector store | managed, auto-scaling | you choose and provision | you run it |
-| Retrieval | `retrieve` (hybrid search + managed reranker), `retrieve_and_generate`, **agentic retrieval** | `retrieve` / `retrieve_and_generate` | your own `knn` query |
+| Retrieval | `retrieve` (hybrid search + managed reranker), **agentic retrieval** (can also generate the answer). `retrieve_and_generate` is **not supported** | `retrieve` / `retrieve_and_generate` | your own `knn` query |
 | Connectors | S3, SharePoint, Confluence, Google Drive, OneDrive, Salesforce, ServiceNow, Zendesk, Box, Web Crawler, custom | S3 and custom (new Confluence/SharePoint/Salesforce/Web Crawler connectors can't be created since Sept 30, 2026) | your ingestion pipeline |
 | Best when | you want managed parse→chunk→embed→retrieve | you need a specific vector DB or embedding setup | you need full control of the index |
 
@@ -59,11 +59,30 @@ resp = client.retrieve(
   the wrong one is a request error. `after/bedrock_knowledge_base.py` handles both
   via `BEDROCK_KB_TYPE`.
 - Use **`retrieve`** for just the chunks (drop-in for an existing search call).
-- Use **`retrieve_and_generate`** to get retrieval + a grounded answer in one
-  call — replaces a search-then-prompt round trip.
-- Use **agentic retrieval** (`AgenticRetrieveStream`, Managed KBs only) for
-  multi-hop questions: a model decomposes the query, searches one or more
-  knowledge bases iteratively, and checks that the results are sufficient.
+- Use **`retrieve_and_generate`** (customer-managed KBs only) to get retrieval +
+  a grounded answer in one call. On a Managed KB it returns
+  `This operation is not supported for managed knowledge bases`.
+- On a Managed KB, use **agentic retrieval** (`agentic_retrieve_stream`) when you
+  want a grounded answer in one call: a model decomposes the query, searches one
+  or more knowledge bases iteratively, checks that the results are sufficient,
+  and with `generateResponse=True` streams a cited answer. Otherwise call
+  `retrieve` and pass the chunks to your own model call.
+
+```python
+resp = client.agentic_retrieve_stream(
+    messages=[{"role": "user", "content": {"text": query}}],
+    retrievers=[{
+        "configuration": {"knowledgeBase": {"knowledgeBaseId": KB_ID,
+                                            "retrievalOverrides": {"maxNumberOfResults": 3}}},
+        "description": "Product documentation",
+    }],
+    agenticRetrieveConfiguration={"foundationModelType": "MANAGED"},
+    generateResponse=True,
+)
+for event in resp["stream"]:
+    if "responseEvent" in event:
+        print(event["responseEvent"]["text"], end="")
+```
 - The KB embeds the query for you, so there's no separate embedding step.
 
 ---
@@ -78,7 +97,7 @@ resp = client.retrieve(
    (`amazon.titan-embed-text-v2:0`) and a vector store. See
    [`ai-search-to-opensearch.md`](ai-search-to-opensearch.md).
 3. **Ingest** — Bedrock parses, chunks, embeds, and indexes automatically.
-4. **Swap the query** to `retrieve` / `retrieve_and_generate` by KB ID.
+4. **Swap the query** to `retrieve` by KB ID (`retrieve_and_generate` on a customer-managed KB, agentic retrieval on a Managed KB).
 5. **Mind the dimensions** — on a customer-managed KB the index dimension must
    match the embedding model (Titan V2 = 1024); on a Managed KB the managed model
    handles this and a custom model must be 1024-dim float32. This is the same

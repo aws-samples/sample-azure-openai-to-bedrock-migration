@@ -112,8 +112,9 @@ Azure `file_search` is managed RAG over uploaded files. On Bedrock:
 - **Bedrock Managed Knowledge Base** (recommended by AWS) — fully managed RAG.
   Point it at an S3 data source and it parses, chunks, embeds, indexes, and
   retrieves, with no vector store or embedding model to choose. Query with
-  `retrieve` (using `managedSearchConfiguration`) or `retrieve_and_generate`, or
-  use agentic retrieval for multi-hop questions. See
+  `retrieve` (using `managedSearchConfiguration`), or use agentic retrieval for a
+  grounded, multi-hop answer in one call (`retrieve_and_generate` is not
+  supported on Managed KBs). See
   [../05_data_plane/](../05_data_plane/).
 - **Customer-managed Knowledge Base** — when you need to pick the vector store,
   embedding model, or parsing yourself.
