@@ -105,7 +105,7 @@ pub static PATTERNS: &[(&str, &str, &str, Severity, &str)] = &[
         "embeddings.create",
         r"\.embeddings\.create\s*\(",
         Severity::High,
-        "Migrate to Bedrock Titan Text Embeddings v2 (1024d), or keep OpenAI embeddings via Bedrock's OpenAI-compatible endpoint. Note: dimension mismatch if switching models — re-embed existing vector stores. See migration/02_embeddings/.",
+        "Migrate to Bedrock Titan Text Embeddings v2 (1024d), there is no OpenAI Embeddings API on Bedrock, so call InvokeModel (boto3). Note: dimension mismatch if switching models — re-embed existing vector stores. See migration/02_embeddings/.",
     ),
     (
         "embeddings",
@@ -135,7 +135,7 @@ pub static PATTERNS: &[(&str, &str, &str, Severity, &str)] = &[
         "web_search server tool",
         r#"["']type["']\s*:\s*["']web_search["']"#,
         Severity::Medium,
-        "Bedrock now has a built-in Web Search tool: add {\"type\":\"web_search\"} on the OpenAI Responses API (GPT-5.x, bedrock-mantle endpoint) — near drop-in. Server-side tools are not available on bedrock-runtime, Converse, or InvokeModel; else use a client-side search tool. See migration/03_tool_use/server-tools.md.",
+        "Bedrock now has a built-in Web Search tool: add {\"type\":\"web_search\"} on the OpenAI Responses API (GPT-5.4 and later, bedrock-mantle endpoint) — near drop-in. Server-side tools are not available on bedrock-runtime, Converse, or InvokeModel; else use a client-side search tool. See migration/03_tool_use/server-tools.md.",
     ),
     (
         "tools",
@@ -149,7 +149,7 @@ pub static PATTERNS: &[(&str, &str, &str, Severity, &str)] = &[
         "file_search server tool (Azure-only)",
         r#"["']type["']\s*:\s*["']file_search["']"#,
         Severity::High,
-        "Azure server-side tool. Replace with Bedrock Knowledge Bases or Amazon OpenSearch. See migration/03_tool_use/server-tools.md.",
+        "Azure server-side tool. Replace with a Bedrock Managed Knowledge Base or Amazon OpenSearch. See migration/03_tool_use/server-tools.md.",
     ),
 
     // ── Agents ────────────────────────────────────────────────────────────
@@ -181,7 +181,7 @@ pub static PATTERNS: &[(&str, &str, &str, Severity, &str)] = &[
         "Azure AI Search",
         r"SearchClient|azure\.search\.documents|AzureKeyCredential.*search",
         Severity::High,
-        "Migrate index to Amazon OpenSearch Serverless or Bedrock Knowledge Bases. See migration/05_data_plane/ai-search-to-opensearch.md.",
+        "Migrate index to a Bedrock Managed Knowledge Base or Amazon OpenSearch. See migration/05_data_plane/ai-search-to-opensearch.md.",
     ),
 
     // ── Config / Misc ─────────────────────────────────────────────────────

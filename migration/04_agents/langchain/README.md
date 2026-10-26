@@ -1,7 +1,8 @@
-# LangChain: AzureChatOpenAI → ChatBedrockConverse
+# LangChain: AzureChatOpenAI → ChatBedrockConverse (or ChatOpenAIMantle)
 
 - **Before:** [`before/azure_langchain.py`](before/azure_langchain.py)
 - **After:** [`after/bedrock_langchain.py`](after/bedrock_langchain.py)
+- **After (Responses API / Web Search):** [`after/bedrock_langchain_mantle.py`](after/bedrock_langchain_mantle.py)
 
 The migration is a **connector swap**. Replace the model object; leave your
 chains, agents, tools, and `.invoke()` calls alone.
@@ -24,6 +25,18 @@ pip install langchain-aws
 
 Notes:
 
+- **Tested with `langchain-aws` 1.9.1** against `openai.gpt-oss-120b-1:0` and
+  `us.openai.gpt-6-sol` (the sample drops the hardcoded `temperature` for
+  frontier GPT models). Recent releases added `reasoning_effort` support for
+  GPT-6 Sol/Luna on `ChatBedrockConverse` (1.8.0).
+- `langchain-aws[openai]` also provides **`ChatOpenAIMantle`**, which targets the
+  `bedrock-mantle` endpoint and defaults to the Responses API for GPT-5.x/6. Use
+  it when you want the Responses API surface or the built-in Web Search tool (via
+  `bind_tools([{"type": "web_search"}])`). See the runnable example
+  [`after/bedrock_langchain_mantle.py`](after/bedrock_langchain_mantle.py)
+  (`pip install "langchain-aws[openai]"`). It takes the bare mantle model id
+  (`openai.gpt-5.6-terra`) and derives short-term API keys from your AWS
+  credentials. Tested with `openai.gpt-5.6-terra` and `openai.gpt-6-sol`.
 - **`ChatBedrockConverse`** uses the Converse API, so it works across every
   Bedrock model — swapping models is just changing `model=`.
   (`ChatBedrock` also exists and uses InvokeModel; prefer `ChatBedrockConverse`

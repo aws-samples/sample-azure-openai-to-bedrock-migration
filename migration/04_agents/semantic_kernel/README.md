@@ -34,12 +34,23 @@ pip install semantic-kernel openai aws-bedrock-token-generator
 
 Semantic Kernel also ships an Amazon Bedrock connector
 (`BedrockChatCompletion`) that authenticates with your AWS credentials directly
-— no bearer token. Prefer it if you want native SigV4 auth. Its exact
-constructor varies across `semantic-kernel` releases, so check the version you
-have installed rather than copying a signature blindly.
+— no bearer token. **It does not support OpenAI models.** In `semantic-kernel`
+1.45.0 it picks a request format from the model-ID prefix, covering AI21, Amazon,
+Anthropic, Cohere, Meta, and Mistral only; passing `openai.gpt-oss-120b-1:0` or
+`us.openai.gpt-6-sol` raises `Model ID ... does not contain a valid model
+provider name`. Use it when you move to a non-OpenAI model; for OpenAI models use
+the OpenAI-compatible route above. Its constructor varies across releases, so
+check the version you have installed.
 
 Notes:
 
+- Semantic Kernel is now **Microsoft Agent Framework**, which Microsoft calls its
+  enterprise-ready successor. The sample here is tested with `semantic-kernel`
+  1.45.0 (Python) and is a lift-and-shift path.
+- On this Chat Completions route, `openai.gpt-oss-120b-1:0` can return a
+  `<reasoning>...</reasoning>` block inline in the reply. Use a GPT-5.6 / GPT-6
+  model (for example `BEDROCK_MODEL_ID=global.openai.gpt-5.6-terra`) for clean
+  output.
 - Either way, `deployment_name` (Azure) becomes a Bedrock **model ID**
   ([../../../docs/model-mapping.md](../../../docs/model-mapping.md)).
 - Endpoint / `api_key` / `api_version` all go away on the native connector; on

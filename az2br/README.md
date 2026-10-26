@@ -58,4 +58,4 @@ After scanning, see the `migration/` folder for step-by-step guides:
 - `02_embeddings/` — Embedding migration and dimension mismatch handling
 - `03_tool_use/` — Function calling and server-side tool migration
 - `04_agents/` — Azure AI Agent Service → Bedrock AgentCore + Strands
-- `05_data_plane/` — Azure AI Search → Amazon OpenSearch / Bedrock Knowledge Bases
+- `05_data_plane/` — Azure AI Search → Bedrock Knowledge Bases / Amazon OpenSearch

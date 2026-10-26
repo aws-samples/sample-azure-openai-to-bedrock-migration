@@ -39,7 +39,9 @@ Compare the two files side by side — same `get_weather`, different plumbing.
 
 Add `"strict": true` to a `toolSpec` to force tool arguments to match your JSON
 schema exactly (structured output enforcement). Handy when downstream code
-depends on the argument shape.
+depends on the argument shape. AWS documents this for Anthropic Claude models
+(on both `bedrock-runtime` and `bedrock-mantle`); confirm support on the model
+card before relying on it for other models.
 
 ### Path A note
 
@@ -53,9 +55,9 @@ On the OpenAI-compatible endpoint (Path A), the `tools` / `tool_choice` shape is
 
 | Azure server tool | Bedrock | Guide |
 |---|---|---|
-| `{"type": "web_search"}` | **Web Search** built-in tool (OpenAI Responses API, GPT-5.x) — near drop-in | [server-tools.md](server-tools.md) |
+| `{"type": "web_search"}` | **Web Search** built-in tool (OpenAI Responses API on `bedrock-mantle`, GPT-5.4 and later) — near drop-in | [server-tools.md](server-tools.md) |
 | `{"type": "code_interpreter"}` | AgentCore Code Interpreter or Lambda-backed tool | [server-tools.md](server-tools.md) |
-| `{"type": "file_search"}` | Bedrock Knowledge Bases / OpenSearch | [server-tools.md](server-tools.md) |
+| `{"type": "file_search"}` | Bedrock Managed Knowledge Base / OpenSearch | [server-tools.md](server-tools.md) |
 
 ---
 

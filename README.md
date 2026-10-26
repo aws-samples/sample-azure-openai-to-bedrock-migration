@@ -48,7 +48,7 @@ sample-azure-openai-to-bedrock-migration/
 │   │   ├── langchain/
 │   │   ├── autogen/
 │   │   └── semantic_kernel/
-│   └── 05_data_plane/              # Azure AI Search → OpenSearch / Bedrock Knowledge Bases
+│   └── 05_data_plane/              # Azure AI Search → Bedrock Knowledge Bases / OpenSearch
 │
 ├── harness/                        # Regression test harness (record / replay / diff)
 │
@@ -102,7 +102,7 @@ cargo build --release
 ▸ TOOLS (2)
   [MEDIUM] app/agent.py:45 — web_search server tool
       {"type": "web_search"}
-      💡 Bedrock has a built-in Web Search tool (OpenAI Responses API, GPT-5.x) — near drop-in. See migration/03_tool_use/server-tools.md.
+      💡 Bedrock has a built-in Web Search tool (OpenAI Responses API on bedrock-mantle, GPT-5.4+) — near drop-in. See migration/03_tool_use/server-tools.md.
   ...
 ```
 
@@ -172,7 +172,7 @@ After scanning, follow the step-by-step guides in `migration/`:
 | `02_embeddings/` | Move to Titan Text Embeddings v2 or keep OpenAI embeddings via Bedrock. Handles dimension mismatch (ada-002 1536d → Titan v2 1024d). |
 | `03_tool_use/` | Convert Azure `tools` + `tool_choice` to Bedrock `toolConfig`. Maps Azure-only server tools to Bedrock equivalents. |
 | `04_agents/` | Migrate Azure AI Agent Service, LangChain-Azure, AutoGen, and Semantic Kernel to Bedrock AgentCore + Strands Agents SDK. |
-| `05_data_plane/` | Migrate Azure AI Search indexes to Amazon OpenSearch or Bedrock Knowledge Bases. |
+| `05_data_plane/` | Migrate Azure AI Search indexes to Bedrock Managed Knowledge Bases or Amazon OpenSearch. |
 
 ---
 

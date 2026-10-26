@@ -14,8 +14,11 @@ API) and want to keep that surface without adopting Converse.
 
 Why the `bedrock-mantle` endpoint here (not `bedrock-runtime`)? The Responses
 API is available on both, but this example showcases the **mantle-only**
-capabilities: server-side tools (Web Search, code interpreter), background
-inference, and Projects/Workspaces. When the Responses API is called on
+capabilities: server-side tools (Web Search), background inference, and
+Projects/Workspaces. For plain Responses calls with no server-side tools, AWS
+recommends `bedrock-runtime` (base URL
+https://bedrock-runtime.{region}.amazonaws.com/openai/v1, inference-profile model
+id such as `global.openai.gpt-5.6-terra`). When the Responses API is called on
 `bedrock-runtime`, server-side tools — including Web Search — are not available.
 
   1. `AzureOpenAI(...)`            -> `OpenAI(base_url=..., api_key=...)`
@@ -54,8 +57,8 @@ bedrock-mantle:CallWithBearerToken"). See the least-privilege example at
 
 Web Search / Region note: Web Search is regional. At the time of writing it is
 supported in the commercial US Regions us-east-1, us-east-2, and us-west-2 (and
-GovCloud US-West), on the GPT-5.4/5.5/5.6 families. Confirm current availability
-in the Bedrock User Guide.
+GovCloud US-West, on a narrower model list), on OpenAI GPT-5.4 and later models.
+Confirm current availability in the Bedrock User Guide.
 
 Reasoning depth / verbosity note: these frontier GPT models accept only the
 default `temperature` and reject `top_p` — use `reasoning_effort` and

@@ -21,7 +21,7 @@ There's no single "right" path — it depends on **what API you're on today** an
 |---|---|---|
 | **A — OpenAI-compatible endpoint** | On Chat Completions today, want smallest diff | Chat Completions (OpenAI SDK) |
 | **B — Converse** | Want a model-agnostic interface, may evaluate non-OpenAI models later | Bedrock Converse |
-| **C — Responses API (mantle)** | On Responses/Assistants today, want to keep that surface, or need server-side tools (Web Search, code interpreter) | Responses (OpenAI SDK) |
+| **C — Responses API** | On Responses/Assistants today and want to keep that surface; add the `bedrock-mantle` endpoint when you need server-side tools (Web Search) | Responses (OpenAI SDK) |
 
 Two questions decide it:
 
@@ -33,8 +33,15 @@ Two questions decide it:
 
 **Recommendation:** match the path to where you are — start with **Path A** for
 the smallest Chat Completions cutover, choose **Path C** if you're already on
-the Responses API (or need mantle-only server-side tools), and adopt **Path B**
-where you want provider-independence across the full model catalog.
+the Responses API (use `bedrock-runtime` by default; switch to `bedrock-mantle`
+only for Web Search or other server-side tools), and adopt **Path B** where you
+want provider-independence across the full model catalog.
+
+> AWS now recommends the **`bedrock-runtime`** endpoint for new OpenAI-compatible
+> (Responses and Chat Completions) integrations. `bedrock-mantle` remains fully
+> supported and is the place for mantle-only features: server-side tools such as
+> Web Search, background inference, Projects/Workspaces, and the Responses API for
+> `gpt-oss` models.
 
 > Naming note: Path A uses the Amazon Bedrock **OpenAI-compatible endpoint**
 > (also called the **Chat Completions API** on Bedrock). It is served on the
@@ -121,14 +128,41 @@ pip install boto3
 
 ---
 
-## Path C — the Responses API on `bedrock-mantle`
+## Path C — the Responses API
 
 If you're already calling `client.responses.create(...)` (or you're on Azure
 OpenAI Assistants, which maps conceptually to the Responses API), you can keep
-that surface. Point the OpenAI SDK at the Bedrock **mantle** endpoint. This is
-also the path to reach **server-side tools** — Web Search, code interpreter —
-which are mantle-only (the Responses API on `bedrock-runtime` does not expose
-them).
+that surface. Bedrock serves the Responses API on **two endpoints**:
+
+| Endpoint | Base URL | Model id | Use when |
+|---|---|---|---|
+| `bedrock-runtime` (**recommended**) | `https://bedrock-runtime.{region}.amazonaws.com/openai/v1` | inference profile, e.g. `global.openai.gpt-5.6-terra` | Default for new work. Synchronous requests, Guardrails, cross-Region inference. |
+| `bedrock-mantle` | `https://bedrock-mantle.{region}.api.aws/openai/v1` | **bare** id, e.g. `openai.gpt-5.6-terra` | You need **server-side tools** (Web Search), background inference, Projects/Workspaces, or Responses on `gpt-oss`. |
+
+Default — `bedrock-runtime`:
+
+```python
+from aws_bedrock_token_generator import provide_token
+from openai import OpenAI
+
+region = "us-east-1"
+client = OpenAI(
+    base_url=f"https://bedrock-runtime.{region}.amazonaws.com/openai/v1",
+    api_key=provide_token(region=region),
+)
+
+response = client.responses.create(
+    model="global.openai.gpt-5.6-terra",    # inference profile id on runtime
+    input="What is Amazon Bedrock?",
+)
+print(response.output_text)
+```
+
+### Server-side Web Search (mantle only)
+
+Server-side tools are **not** available on `bedrock-runtime`. For Web Search,
+point the same SDK at `bedrock-mantle` and use the **bare** model id. One tool
+object is a near drop-in from Azure:
 
 ```python
 from aws_bedrock_token_generator import provide_token
@@ -142,16 +176,6 @@ client = OpenAI(
 
 response = client.responses.create(
     model="openai.gpt-5.6-terra",           # bare model id on mantle
-    input="What is Amazon Bedrock?",
-)
-print(response.output_text)
-```
-
-Add the built-in Web Search tool with one tool object — near drop-in from Azure:
-
-```python
-response = client.responses.create(
-    model="openai.gpt-5.6-terra",
     input="What's the latest AWS Lambda cold start guidance?",
     tools=[{
         "type": "web_search",
@@ -159,7 +183,12 @@ response = client.responses.create(
         "external_web_access": False,  # keep retrieval inside the AWS boundary
     }],
 )
+print(response.output_text)
 ```
+
+Web Search also accepts `filters` (up to 100 `allowed_domains` and 100
+`blocked_domains`) and `user_location` — see
+[`../03_tool_use/server-tools.md`](../03_tool_use/server-tools.md).
 
 Full runnable example: [`after/bedrock_responses_api.py`](after/bedrock_responses_api.py).
 
@@ -177,7 +206,9 @@ pip install openai aws-bedrock-token-generator
 > the failed Fetch shows up only as a `web_search_call` with `status: "failed"`
 > in the response body) — set it to `False` to stay inside the AWS boundary.
 > Also note: mantle takes the **bare** model id (`openai.gpt-5.6-terra`); the
-> `us.` inference-profile id is a `bedrock-runtime` concept and 404s on mantle.
+> `us.`/`global.` inference-profile id is a `bedrock-runtime` concept and 404s
+> on mantle. On `bedrock-runtime` the frontier GPT models are
+> inference-profile-only, so use the profile id there.
 > See [`../03_tool_use/server-tools.md`](../03_tool_use/server-tools.md).
 
 ---
@@ -191,13 +222,14 @@ or **inference profile ids**. You pass the Bedrock id as the `model` (Path A) or
 | On Azure (deployment of) | On Bedrock (example id) |
 |---|---|
 | GPT open-weight models | `openai.gpt-oss-120b-1:0`, `openai.gpt-oss-20b-1:0` |
-| Latest GPT (US cross-Region) | `us.openai.gpt-5.6-terra` |
-| Latest GPT (global cross-Region) | `global.openai.gpt-5.6-terra` |
+| Latest GPT (US cross-Region) | `us.openai.gpt-6-sol`, `us.openai.gpt-6.1-sol` |
+| Latest GPT (global cross-Region) | `global.openai.gpt-6-sol`, `global.openai.gpt-6.1-sol` |
+| Cost-balanced GPT (global cross-Region) | `global.openai.gpt-5.6-terra` (used in this repo's examples) |
 
 Regional (`openai.*`) vs. cross-Region inference profile ids (`us.openai.*`,
 `global.openai.*`) affect where inference runs and your availability posture.
-The full GPT → Bedrock table lives in
-[`../../docs/model-mapping.md`](../../docs/model-mapping.md) *(roadmap)*.
+The full GPT → Bedrock table (GPT-6 family, GPT-5.6, and the mantle bare-id
+rules) lives in [`../../docs/model-mapping.md`](../../docs/model-mapping.md).
 
 ---
 

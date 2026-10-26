@@ -20,8 +20,10 @@ stays the same.
 ```
 
 ```bash
-pip install autogen-agentchat aws-bedrock-token-generator
+pip install "autogen[openai]" aws-bedrock-token-generator
 ```
+
+Tested with `autogen` 0.14.1 (AG2 Classic) against `bedrock-runtime`.
 
 What changes:
 
@@ -33,9 +35,23 @@ What changes:
 
 Notes:
 
-- AutoGen package naming varies by version (`pyautogen` / `autogen-agentchat` /
-  AG2). The config shape shown here is the common OpenAI-compatible form; adjust
-  imports to your installed distribution.
+- **Pick the right AutoGen package.** The code here (`from autogen import
+  AssistantAgent`, `llm_config`, `config_list`) is the **AG2 Classic** API,
+  published on PyPI as `autogen`. Other distributions will not run it:
+  - `autogen-agentchat` / `pyautogen` (Microsoft AutoGen 0.4+) import as
+    `autogen_agentchat` and use `model_client=` instead of `llm_config`.
+    Microsoft has archived AutoGen and recommends
+    [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)
+    for new work.
+  - `ag2` 1.x imports as `ag2` and no longer ships the `autogen` namespace.
+  AG2 Classic is in maintenance mode (security and critical fixes only), so
+  treat this as a lift-and-shift path rather than a target for new development.
+- **Frontier GPT models** (`openai.gpt-5.x`, `gpt-6`) reject a non-default
+  `temperature`; the sample omits it for those models.
+- **`gpt-oss` shows its reasoning inline.** On this Chat Completions path the
+  reply from `openai.gpt-oss-120b-1:0` can start with a `<reasoning>...</reasoning>`
+  block inside the message content. Strip it, or use a GPT-5.6 / GPT-6 model
+  (for example `BEDROCK_MODEL_ID=global.openai.gpt-5.6-terra`) for clean output.
 - You can also back AutoGen with `langchain-aws` where a LangChain model is
   accepted, mirroring the [LangChain guide](../langchain/README.md).
 
