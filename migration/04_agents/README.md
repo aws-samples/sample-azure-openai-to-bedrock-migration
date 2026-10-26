@@ -20,9 +20,30 @@ starting points and two targets.
   Service, which also runs the loop server-side. You can export the harness to
   Strands code if you later need full control.
 - **Bedrock Managed Agents, powered by OpenAI (public preview):** OpenAI's agent
-  harness running inside AWS with IAM identity, sessions, skills, and MCP tools.
-  A fit if you're on OpenAI models and want that agent surface; preview APIs can
-  change, so don't build a production dependency on it yet.
+  harness as an AWS service, so teams building on OpenAI models can keep that
+  agent experience while running entirely inside AWS with IAM identity,
+  CloudTrail logging, durable sessions, skills, and MCP tools. You choose where
+  tools run: your own host or container, or an AgentCore Runtime in your account.
+  It is in **public preview**, so details may change: today it uses the
+  `bedrock-mantle` endpoint in us-east-1, us-east-2, and us-west-2, takes text
+  input, and uses the OpenAI models available in your Region. Check the
+  [Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-managed-agents-openai.html)
+  for the current surface before you plan around it.
+
+### Choosing between the managed options
+
+Both options give you a managed agent loop on AWS. Pick by the model family and
+the operating model you want.
+
+| | **AgentCore harness** | **Bedrock Managed Agents, powered by OpenAI** |
+|---|---|---|
+| Status | Generally available | Public preview (may change) |
+| Models | Model-agnostic; configure the model per agent | OpenAI models on Bedrock |
+| Where tools run | AgentCore provisions the compute, memory, and identity for you | The environment you choose: your own compute or an AgentCore Runtime |
+| Good fit | A first managed home for Azure AI Agent Service workloads; mixed or non-OpenAI models; export to Strands for more control | Teams standardized on OpenAI's agent harness who want it inside AWS governance |
+
+They also compose: Managed Agents can use AgentCore Runtime as its execution
+environment.
 
 You can do the swap first to get onto Bedrock, then migrate to Strands or the
 harness where it pays off.
