@@ -29,8 +29,8 @@ This page maps each Azure OpenAI call to its Bedrock equivalent on both paths.
 |---|---|---|
 | `client.chat.completions.create(...)` | identical call, Bedrock `base_url` + model ID | `bedrock_runtime.converse(...)` |
 | streaming (`stream=True`) | identical | `bedrock_runtime.converse_stream(...)` |
-| `client.embeddings.create(...)` | supported on the endpoint for embedding models | `bedrock_runtime.invoke_model(...)` |
-| `client.responses.create(...)` (Responses API) | supported for GPT-5.x on the endpoint (bedrock-mantle) | *(no Converse equivalent; use Path A)* |
+| `client.embeddings.create(...)` | not available (no OpenAI Embeddings API on Bedrock) | `bedrock_runtime.invoke_model(...)` |
+| `client.responses.create(...)` (Responses API) | supported on `bedrock-runtime` (recommended) and `bedrock-mantle` (needed for Web Search / server-side tools) | *(no Converse equivalent; see Path C)* |
 | function calling (`tools=`, `tool_choice=`) | identical shape | `toolConfig=` + `toolChoice=` (see [tool-mapping.md](tool-mapping.md)) |
 | server tools (`web_search`, etc.) | see [tool-mapping.md](tool-mapping.md) | see [tool-mapping.md](tool-mapping.md) |
 

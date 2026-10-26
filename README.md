@@ -102,7 +102,7 @@ cargo build --release
 ▸ TOOLS (2)
   [MEDIUM] app/agent.py:45 — web_search server tool
       {"type": "web_search"}
-      💡 Bedrock has a built-in Web Search tool (OpenAI Responses API, GPT-5.x) — near drop-in. See migration/03_tool_use/server-tools.md.
+      💡 Bedrock has a built-in Web Search tool (OpenAI Responses API on bedrock-mantle, GPT-5.4+) — near drop-in. See migration/03_tool_use/server-tools.md.
   ...
 ```
 
