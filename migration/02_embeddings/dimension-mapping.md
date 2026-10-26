@@ -23,6 +23,12 @@ can output 3072 (3-large). That lets you keep the index *size*, but the
 vectors come from a different model, so you still re-embed everything. Pick
 the model you actually want, not the one with the matching number.
 
+> **Bedrock Managed Knowledge Base:** the managed embedding model needs no
+> dimension planning. A custom embedding model on a managed KB must be
+> 1024-dimension float32 and can't be changed after the KB is created. The
+> dimension rules in this guide apply in full to customer-managed KBs and to
+> your own OpenSearch index.
+
 ## Migration playbook
 
 1. **Pick the target model + dimension** and fix it for the whole index. Titan

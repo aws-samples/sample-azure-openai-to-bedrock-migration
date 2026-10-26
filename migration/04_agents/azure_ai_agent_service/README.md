@@ -101,10 +101,18 @@ API surface:
 `BingGroundingTool` backed by Bing Search API.
 Bedrock equivalents (choose one):
 
+- **Bedrock Web Search** — built-in server-side tool on the Responses API
+  (`bedrock-mantle`, OpenAI GPT-5.4 and later). Near drop-in and stays inside the
+  AWS boundary; see [`../../03_tool_use/server-tools.md`](../../03_tool_use/server-tools.md).
+  Optionally wired into `after/bedrock_responses_api_loop.py`.
+- **AgentCore Gateway Web Search** — managed MCP connector that works with any
+  model and framework (Strands, LangChain, LangGraph, CrewAI), with domain and
+  published-date filters. The natural fit for the Converse and Strands targets.
 - **Tavily** — `pip install tavily-python` — clean async API, news + general
 - **Brave Search API** — privacy-focused, good coverage
-- **Bedrock AgentCore Gateway** — MCP-based tool proxy (no custom search code)
-- **Amazon Kendra** — enterprise search (if corpus is internal docs)
+- **Bedrock AgentCore Gateway** (custom targets) — MCP-based tool proxy for your own search API
+- **Bedrock Managed Knowledge Base** — managed RAG (if the corpus is internal docs); see [05_data_plane](../../05_data_plane/README.md)
+- **Amazon OpenSearch** (Serverless or managed) — when you want to own the index and retrieval logic
 
 ## Verify
 

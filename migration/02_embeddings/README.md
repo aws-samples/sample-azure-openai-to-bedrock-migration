@@ -57,9 +57,10 @@ Two differences beyond auth:
 
 ### Prefer to keep the OpenAI SDK?
 
-The Bedrock OpenAI-compatible endpoint also serves embedding models, so a
-Path-A-style `client.embeddings.create(...)` works too. Use boto3 (above) when
-you want the native `dimensions`/`normalize` controls and standard AWS auth.
+Bedrock's OpenAI-compatible APIs cover Chat Completions and Responses; Bedrock's
+API-compatibility table does not list an OpenAI **Embeddings** API. Embedding
+models are called through `InvokeModel` (boto3, as above), so plan to replace
+`client.embeddings.create(...)` rather than re-point it.
 
 ---
 
@@ -72,6 +73,13 @@ you want the native `dimensions`/`normalize` controls and standard AWS auth.
 
 All require re-embedding vs. ada-002. See
 [../../docs/model-mapping.md](../../docs/model-mapping.md).
+
+> Feeding a **Bedrock Managed Knowledge Base**? By default it uses a
+> service-managed embedding model and you embed nothing yourself. If you bring
+> your own embedding model it must output **1024-dimension float32** vectors
+> (Titan V2, Cohere Embed v3/v4, or Nova Multimodal Embeddings), so the 512/256
+> and G1 (1536) options above don't apply. See
+> [../05_data_plane/](../05_data_plane/).
 
 ---
 

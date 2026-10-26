@@ -4,7 +4,7 @@ Agent workloads are the highest-effort migration because the *framework*, not
 just the model call, is coupled to Azure. This section covers the three common
 starting points and two targets.
 
-## Two targets
+## Targets
 
 - **Framework-native swap (fastest):** keep your framework (LangChain, AutoGen,
   Semantic Kernel) and swap the **Azure model connector** for the Bedrock one.
@@ -14,9 +14,18 @@ starting points and two targets.
   on **Amazon Bedrock AgentCore Runtime** — a managed, serverless runtime for
   agents with memory, identity, gateways, and tool sandboxes. Best when you want
   a first-class AWS agent platform rather than framework glue.
+- **AgentCore harness (managed agent loop):** declare a model, system prompt, and
+  tools, and AgentCore runs the agent loop for you — no orchestration code.
+  Generally available since June 2026, and the closest analog to Azure AI Agent
+  Service, which also runs the loop server-side. You can export the harness to
+  Strands code if you later need full control.
+- **Bedrock Managed Agents, powered by OpenAI (public preview):** OpenAI's agent
+  harness running inside AWS with IAM identity, sessions, skills, and MCP tools.
+  A fit if you're on OpenAI models and want that agent surface; preview APIs can
+  change, so don't build a production dependency on it yet.
 
-You can do the swap first to get onto Bedrock, then migrate to Strands where it
-pays off.
+You can do the swap first to get onto Bedrock, then migrate to Strands or the
+harness where it pays off.
 
 ## Framework guides
 
@@ -25,7 +34,7 @@ pays off.
 | LangChain (`AzureChatOpenAI`) | [`langchain/`](langchain/) | `ChatBedrockConverse` (`langchain-aws`) |
 | AutoGen (Azure client) | [`autogen/`](autogen/) | Bedrock via AutoGen's OpenAI-compatible client / `langchain-aws` |
 | Semantic Kernel (`AzureChatCompletion`) | [`semantic_kernel/`](semantic_kernel/) | Bedrock connector for SK |
-| Azure AI Agent Service | *(see below)* | AgentCore + Strands |
+| Azure AI Agent Service | *(see below)* | AgentCore harness, or AgentCore + Strands |
 
 ## Azure AI Agent Service → AgentCore + Strands
 
@@ -53,7 +62,13 @@ app.run()
 
 You then deploy the container to AgentCore Runtime. AgentCore adds managed
 Memory, Identity, Gateway (MCP tools), and Code Interpreter — the pieces Azure
-AI Agent Service bundled, now as composable AWS services.
+AI Agent Service bundled, now as composable AWS services. AgentCore Gateway can
+also front model traffic (including `InvokeModel`) and fail over to a fallback
+model when the primary is throttled or unavailable.
+
+If you'd rather not write the loop at all, the **AgentCore harness** is the
+closest managed equivalent: you configure the model, instructions, and tools and
+AgentCore handles compute, memory, identity, and observability.
 
 ## The common denominator
 
