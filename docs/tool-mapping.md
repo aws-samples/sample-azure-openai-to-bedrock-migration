@@ -42,6 +42,7 @@ Full runnable example: [../migration/03_tool_use/](../migration/03_tool_use/).
 | `{"type": "web_search"}` | **Web Search** — built-in server tool: `{"type": "web_search"}` on the **OpenAI Responses API** (GPT-5.4 and later), on the **bedrock-mantle** endpoint | Low — near drop-in |
 | `{"type": "code_interpreter"}` | AgentCore **Code Interpreter** sandbox, or a Lambda-backed tool | Medium |
 | `{"type": "file_search"}` | **Bedrock Managed Knowledge Base** (managed RAG) or Amazon OpenSearch | Medium |
+| Bing grounding / custom function tools on **Azure AI Agent Service** | With *Bedrock Managed Agents (preview)*: a stdio **MCP server** you run in the agent's execution environment; the JSON Schema carries over unchanged ([example](../migration/04_agents/azure_ai_agent_service/after/bma_research_mcp.py)) | Medium |
 
 ### `web_search` → Bedrock Web Search
 
@@ -109,5 +110,7 @@ Azure's `file_search` is managed RAG over uploaded files. On Bedrock:
   client-side search tool.
 - **`code_interpreter`** → AgentCore Code Interpreter or a Lambda-backed tool.
 - **`file_search`** → Bedrock Managed Knowledge Base or OpenSearch (DIY).
+- **Custom tools for a Managed Agents session** → an MCP server in the execution
+  environment; tools run where you run them, not in the service.
 
 See also: [api-mapping.md](api-mapping.md), [model-mapping.md](model-mapping.md).

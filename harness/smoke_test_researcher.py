@@ -188,6 +188,43 @@ if _have_responses_deps:
             os.environ["BEDROCK_MODEL_ID"] = _saved_model
 
 
+# ── Test 4: Bedrock Managed Agents (preview) researcher ────────────────────────
+#
+# Opt-in: needs the one-time IAM stack (migration/04_agents/azure_ai_agent_service/
+# bma_iam_cdk), the Codex CLI (0.154.0+), and a profile that can assume
+# BmaClientRole. Set BMA_SMOKE=1 to run. It uses BMA_MODEL (default
+# openai.gpt-5.6-luna) — NOT BEDROCK_MODEL_ID, because the least-privilege session
+# role only allows the models the IAM stack lists.
+
+print("\nTest 4 — Researcher agent on Bedrock Managed Agents (preview)")
+
+if os.environ.get("BMA_SMOKE") != "1":
+    print(f"  {SKIP} skipped — set BMA_SMOKE=1 (needs bma_iam_cdk stack + Codex CLI)")
+else:
+    try:
+        import bedrock_managed_agents_researcher as managed
+
+        t0 = time.time()
+        result = managed.research(
+            "What are the latest lightweight camping tent innovations in 2025?",
+            feedback="No feedback",
+        )
+        elapsed = round(time.time() - t0, 1)
+
+        for key in ("web", "entities", "news"):
+            assert key in result and isinstance(result[key], list), f"'{key}' must be a list"
+        assert result["web"], "web results must not be empty"
+        for key in ("url", "name", "description"):
+            assert key in result["web"][0], f"each result needs '{key}'"
+
+        record("managed agents turn completes", True, f"{elapsed}s  (model={managed.MODEL})")
+        record("output shape valid", True, f"{len(result['web'])} web results")
+    except AssertionError as e:
+        record("managed agents output shape validation", False, str(e))
+    except Exception as e:
+        record("managed agents execution", False, f"{type(e).__name__}: {e}")
+
+
 # ── Summary ─────────────────────────────────────────────────────────────────────
 
 passed = sum(1 for _, ok, _ in results if ok)
