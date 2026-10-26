@@ -29,6 +29,8 @@ starting points and two targets.
   input, and uses the OpenAI models available in your Region. Check the
   [Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-managed-agents-openai.html)
   for the current surface before you plan around it.
+  A worked Azure AI Agent Service migration, with live-verified IAM and gotchas, is in
+  [`azure_ai_agent_service/`](azure_ai_agent_service/README.md#bedrock-managed-agents-preview).
 
 ### Choosing between the managed options
 

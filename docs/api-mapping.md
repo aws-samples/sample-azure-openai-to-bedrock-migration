@@ -33,6 +33,7 @@ This page maps each Azure OpenAI call to its Bedrock equivalent on both paths.
 | `client.responses.create(...)` (Responses API) | supported on `bedrock-runtime` (recommended) and `bedrock-mantle` (needed for Web Search / server-side tools) | *(no Converse equivalent; see Path C)* |
 | function calling (`tools=`, `tool_choice=`) | identical shape | `toolConfig=` + `toolChoice=` (see [tool-mapping.md](tool-mapping.md)) |
 | server tools (`web_search`, etc.) | see [tool-mapping.md](tool-mapping.md) | see [tool-mapping.md](tool-mapping.md) |
+| Agent Service / Assistants (`create_agent`, `create_thread`, `create_and_process_run`) | *(preview)* Bedrock Managed Agents on `bedrock-mantle`: a session replaces agent + thread, a turn replaces a run; see [04_agents](../migration/04_agents/azure_ai_agent_service/README.md#bedrock-managed-agents-preview) | *(no Converse equivalent; you own the loop)* |
 
 OpenAI models on Bedrock support **Invoke, Converse, Chat Completions, and
 Responses** APIs. Non-OpenAI models (Claude, Nova, Llama, …) support **Invoke

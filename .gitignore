@@ -15,6 +15,9 @@ venv/
 # Rust build artifacts (contain high-entropy hashes that trip detect-secrets)
 az2br/target/
 
+# CDK synth output for the Managed Agents IAM sample
+migration/**/bma_iam_cdk/cdk.out/
+
 # ASH / security scan output
 security-scan-results/
 docs/threat-model/

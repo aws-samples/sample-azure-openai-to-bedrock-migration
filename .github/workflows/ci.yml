@@ -60,6 +60,7 @@ jobs:
         run: |
           python harness/test_diff.py
           python harness/test_providers.py
+          python harness/test_bma_researcher.py
 
   smoke:
     name: Live Bedrock smoke test (gated on AWS creds)
